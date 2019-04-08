@@ -1,11 +1,15 @@
 from flask import Flask, request
 from flask_restful import Resource, Api
 import uuid
+import redis
+import json
+
 
 app = Flask(__name__)
 api = Api(app)
+r_coon= redis.StrictRedis(host='localhost', port=6379, db=0)
 
-#TODO 
+
 def get_all_exam():
     return { 'exam': ['chem','bio','phy','tech'] }
 
@@ -19,7 +23,7 @@ def get_sub(sub_type):
     return {'sub_id':10000,'type': sub_type, 'title':'Titles for exan','choice': {'A': 'AAAAA','B':'BBBBB','C':'CCCCC','D':'DDDDD'} }
 
 #TODO 
-def generate_subjects(subjects):
+def generate_subjects(subjects, session):
     single_choice,multi_choice,bool_choice = get_sub_num()
     while single_choice > 0:
         subjects.append(get_sub('single_choice'))
@@ -30,11 +34,11 @@ def generate_subjects(subjects):
     while bool_choice > 0:
         subjects.append(get_sub('bool_choice'))
         bool_choice = bool_choice - 1
+    r_coon.hset('session', session, json.dumps(subjects))
 
 #TODO
 def get_session_status(session_id):
-    #raise SessionFailed
-    return {10000:'A'}
+    return json.loads(r_coon.hget('session', session_id))
 
 
 #TODO
@@ -66,7 +70,7 @@ class RegExamSub(Resource):
         exam['session'] = str(uuid.uuid4())
         exam['exam'] = sub_name
         subjects = []
-        generate_subjects(subjects)
+        generate_subjects(subjects,exam['session'])
         exam['subjects'] = subjects
         return exam
 
