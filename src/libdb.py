@@ -1,24 +1,35 @@
-class SubjectsDB(db.Model):
-    sub_id = db.Column(db.Integer, primary_key=True)
-    sub_type = db.Column(db.String(80), unique=False)
-    sub_choice = db.Column(db.String(2000), unique=False)
-    sub_answer = db.Column(db.String(20), unique=False)
-    sub_sub_name = db.Column(db.String(20), unique=False)
-
-    def __init__(self, sub_id, sub_type, sub_sub_name, sub_choice, sub_answer):
-        self.sub_id = sub_id
-        self.sub_type = sub_type
-        self.sub_sub_name = sub_sub_name
-        self.sub_choice = sub_choice
-        self.sub_answer = sub_answer
+from flask import Flask
+from flask_sqlalchemy import SQLAlchemy
 
 
-class SubNameDB(db.Model):
-    sub_name = db.Column(db.String(80), unique=True)
-    sub_name_id = db.Column(db.Integer, primary_key=True)
-    sub_num = db.Column(db.String(80),  unique=False)
-    
-    def __init__(self, sub_name, sub_name_id, sub_num):
-        self.sub_name = sub_name
-        self.sub_name_id = sub_name_id
-        self.sub_num = sub_num
+db = SQLAlchemy()
+
+
+def create_app():
+    app = Flask('ChaoliExam')
+#    app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:////tmp/test.db'
+    db.init_app(app)
+    return app
+
+
+class Choices(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    choice = db.Column(db.String(2000), unique=False)
+    topic_id = db.Column(db.Integer, db.ForeignKey('topic.id'))
+    true = db.Column(db.Integer, primary_key=True)
+
+
+class TopicDB(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    sub_id = db.Column(db.Integer, db.ForeignKey('subject.id'))
+    type = db.Column(db.Integer, unique=False)
+    choices = db.relationship('Choices', backref='topic',
+                                lazy='dynamic')
+    name = db.Column(db.String(20), unique=False)
+
+
+class ExamSubjectDB(db.Model):
+    name = db.Column(db.String(80), unique=True)
+    id = db.Column(db.Integer, primary_key=True)
+    topics = db.relationship('Choices', backref='subject',
+                                lazy='dynamic')

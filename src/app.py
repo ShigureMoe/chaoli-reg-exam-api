@@ -2,10 +2,12 @@ from flask import Flask, request
 from flask_restful import Resource, Api
 import uuid
 import json
-import libexam
+import src.libexam as libexam
+from flask_sqlalchemy import SQLAlchemy
+from src.libdb import create_app
 
 
-app = Flask(__name__)
+app = create_app()
 api = Api(app)
 
 

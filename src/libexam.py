@@ -1,3 +1,5 @@
+from src.libdb import create_app
+
 def get_all_exam():
     return {}
 
