@@ -12,7 +12,7 @@ db = SQLAlchemy(app)
 api = Api(app)
 
 
-class sChoices(db.Model):
+class Choices(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     choice = db.Column(db.String(2000), unique=False)
     topic_id = db.Column(db.Integer, db.ForeignKey('topics.id'))
@@ -20,33 +20,20 @@ class sChoices(db.Model):
     true = db.Column(db.Integer, primary_key=True)
 
 
-class sTopics(db.Model):
+class Topics(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     sub_id = db.Column(db.Integer, db.ForeignKey('subjects.id'))
     type = db.Column(db.Integer, unique=False)
-    subject = db.relationship('Subjects', backref=db.backref('s_topics'))
-    name = db.Column(db.String(20), unique=False)
-
-
-class mChoices(db.Model):
-    id = db.Column(db.Integer, primary_key=True)
-    choice = db.Column(db.String(2000), unique=False)
-    topic_id = db.Column(db.Integer, db.ForeignKey('topics.id'))
-    topic = db.relationship('Topics', backref=db.backref('choices'))
-    true = db.Column(db.Integer, primary_key=True)
-
-
-class mTopics(db.Model):
-    id = db.Column(db.Integer, primary_key=True)
-    sub_id = db.Column(db.Integer, db.ForeignKey('subjects.id'))
-    type = db.Column(db.Integer, unique=False)
-    subject = db.relationship('Subjects', backref=db.backref('m_topics'))
+    subject = db.relationship('Subjects', backref=db.backref('topics'))
     name = db.Column(db.String(20), unique=False)
 
 
 class Subjects(db.Model):
     name = db.Column(db.String(80), unique=True)
     id = db.Column(db.Integer, primary_key=True)
+
+
+db_operate = libexam.DBOperate(Subjects,Topics,Choices,db)
 
 
 class DoNotCheat(Exception):
@@ -61,7 +48,7 @@ class SessionFailed(Exception):
 
 class RegExam(Resource):
     def get(self):
-        exam = libexam.get_all_exam()
+        exam = db_operate.get_all_exam()
         return exam
 
 
@@ -71,7 +58,7 @@ class RegExamSub(Resource):
         exam['session'] = str(uuid.uuid4())
         exam['exam'] = sub_name
         subjects = []
-        libexam.generate_subjects(subjects,exam['session'],sub_name)
+        db_operate.generate_subjects(subjects,exam['session'],sub_name)
         exam['subjects'] = subjects
         return exam
 
@@ -79,7 +66,7 @@ class RegExamSub(Resource):
         session_id = request.form['session']
         answer = request.form['answer']
         try:
-            return libexam.solve_answer(session_id,answer)
+            return db_operate.solve_answer(session_id,answer)
         except DoNotCheat:
             return {'Warning': 'DoNotCheat'}
         except SessionFailed:
