@@ -1,10 +1,12 @@
-from src.libdb import create_app
+class DBOperate(object):
+    def __init__(self):
+        pass
 
-def get_all_exam():
-    return {}
+    def get_all_exam(self):
+        return {}
 
-def generate_subjects(subjects,session,sub_name):
-    pass
+    def generate_subjects(self,subjects,session,sub_name):
+        pass
 
-def solve_answer(session_id,answer):
-    pass
+    def solve_answer(self,session_id,answer):
+        pass
